@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Navbar from './components/Navbar'
 import About from './components/About'
 import Capabilities from './components/Capabilities'
@@ -11,10 +11,13 @@ import WorkflowSequence from './components/WorkflowSequence'
 import AboutWorkTransition from './components/AboutWorkTransition'
 
 export default function App() {
+  const [isLoading, setIsLoading] = useState(true)
+
   useEffect(() => {
     const previousScrollRestoration = window.history.scrollRestoration
     window.history.scrollRestoration = 'manual'
     window.scrollTo(0, 0)
+    const loadingTimer = window.setTimeout(() => setIsLoading(false), 200)
 
     const updateScrollProgress = () => {
       const max = document.documentElement.scrollHeight - window.innerHeight
@@ -25,11 +28,27 @@ export default function App() {
     return () => {
       window.removeEventListener('scroll', updateScrollProgress)
       window.history.scrollRestoration = previousScrollRestoration
+      window.clearTimeout(loadingTimer)
     }
+  }, [])
+
+  useEffect(() => {
+    const dampNormalScroll = (event) => {
+      if (event.ctrlKey || event.target.closest?.('.project-sequence-section')) return
+
+      event.preventDefault()
+      window.scrollBy({ top: event.deltaY * 0.8, left: 0 })
+    }
+
+    window.addEventListener('wheel', dampNormalScroll, { passive: false })
+    return () => window.removeEventListener('wheel', dampNormalScroll)
   }, [])
 
   return (
     <div className="site-shell">
+      <div className={`page-loader ${isLoading ? '' : 'page-loader-hidden'}`} aria-hidden="true">
+        <span />
+      </div>
       <div className="scroll-progress" aria-hidden="true" />
       <Navbar />
 
@@ -46,7 +65,7 @@ export default function App() {
       </main>
 
       <Footer />
-      <a className="about-up-float" href="#about" aria-label="Go to About section" title="Go to About section">
+      <a className="about-up-float" href="#home" aria-label="Return to site start" title="Return to site start">
         ↑
       </a>
       <a
