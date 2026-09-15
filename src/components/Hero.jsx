@@ -12,7 +12,6 @@ export default function Hero() {
       <div className="hero-sequence-wrap">
         <ScrollSequence folder="/sequences/hero" frameCount={90} priority className="hero-sequence" />
       </div>
-      <span className="sequence-note">Scroll to explore</span>
       <div className="hero-meta"><span>Based in Amsterdam</span><span>52°22′N / 4°54′E</span><span>01 — 06</span></div>
     </section>
   )

@@ -170,7 +170,6 @@ export default function WorkflowSequence() {
           and scalable digital products — from concept to deployment.
         </p>
 
-        <span className="workflow-scroll-cue">Scroll to explore <b>↓</b></span>
       </div>
 
       <canvas

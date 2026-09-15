@@ -311,7 +311,6 @@ export default function ProjectSequence({ projects }) {
           <span className="project-sequence-progress">0{index + 1} / 04</span>
         </div>
       ))}
-      <span className="project-sequence-cue">Scroll to explore <b>↓</b></span>
     </section>
   )
 }
