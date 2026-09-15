@@ -1,0 +1,60 @@
+import { useEffect, useState } from 'react'
+
+const links = [
+  { label: 'About', href: '#about', target: '#about' },
+  { label: 'What I Build', href: '#work', target: '.what-builds-section' },
+  { label: 'Projects', href: '#work', target: '.projects' },
+  { label: 'Experience', href: '#experience', target: '#experience' },
+  { label: 'Tech Stack', href: '#tech-stack', target: '#tech-stack' },
+]
+
+const cta = { label: "Let's Talk", href: '#contact', target: '#contact' }
+
+export default function Navbar() {
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+
+  useEffect(() => {
+    const updateHeader = () => setIsScrolled(window.scrollY > 40)
+    updateHeader()
+    window.addEventListener('scroll', updateHeader, { passive: true })
+    return () => window.removeEventListener('scroll', updateHeader)
+  }, [])
+
+  const closeMenu = () => setIsOpen(false)
+
+  const navigateTo = (event, target) => {
+    const section = document.querySelector(target)
+    if (!section) return
+
+    event.preventDefault()
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    window.history.replaceState(null, '', target.startsWith('#') ? target : `#${section.id || 'work'}`)
+    closeMenu()
+  }
+
+  return (
+    <header className={`navbar ${isScrolled ? 'navbar-scrolled' : ''}`}>
+      <a className="navbar-brand" href="#home" aria-label="RAJDEEP SINGH home" onClick={closeMenu}>
+        <span className="navbar-name">RAJDEEP SINGH</span>
+      </a>
+      <button
+        className={`navbar-toggle ${isOpen ? 'navbar-toggle-open' : ''}`}
+        type="button"
+        aria-expanded={isOpen}
+        aria-controls="primary-navigation"
+        onClick={() => setIsOpen((open) => !open)}
+      >
+        <span />
+        <span />
+        <span className="sr-only">Toggle navigation</span>
+      </button>
+      <nav id="primary-navigation" className={`navbar-links ${isOpen ? 'navbar-links-open' : ''}`} aria-label="Primary navigation">
+        {links.map(({ label, href, target }) => (
+          <a href={href} key={label} onClick={(event) => navigateTo(event, target)}>{label}</a>
+        ))}
+      </nav>
+      <a className="navbar-cta navbar-link-prominent" href={cta.href} onClick={(event) => navigateTo(event, cta.target)}>{cta.label}</a>
+    </header>
+  )
+}
