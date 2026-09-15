@@ -12,13 +12,20 @@ import AboutWorkTransition from './components/AboutWorkTransition'
 
 export default function App() {
   useEffect(() => {
+    const previousScrollRestoration = window.history.scrollRestoration
+    window.history.scrollRestoration = 'manual'
+    window.scrollTo(0, 0)
+
     const updateScrollProgress = () => {
       const max = document.documentElement.scrollHeight - window.innerHeight
       document.documentElement.style.setProperty('--scroll-progress', `${max ? window.scrollY / max : 0}`)
     }
     updateScrollProgress()
     window.addEventListener('scroll', updateScrollProgress, { passive: true })
-    return () => window.removeEventListener('scroll', updateScrollProgress)
+    return () => {
+      window.removeEventListener('scroll', updateScrollProgress)
+      window.history.scrollRestoration = previousScrollRestoration
+    }
   }, [])
 
   return (
@@ -39,6 +46,9 @@ export default function App() {
       </main>
 
       <Footer />
+      <a className="about-up-float" href="#about" aria-label="Go to About section" title="Go to About section">
+        ↑
+      </a>
       <a
         className="whatsapp-float"
         href="https://wa.me/919779082731"

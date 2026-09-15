@@ -6,6 +6,28 @@ html { scroll-behavior: smooth; background: var(--ink); }
 body { margin: 0; background: var(--ink); color: var(--paper); font-family: var(--sans); font-size: 16px; line-height: 1.45; }
 a { color: inherit; text-decoration: none; }
 .site-shell { overflow: hidden; }
+.about-up-float {
+  align-items: center;
+  background: rgba(17, 17, 15, .88);
+  border: 1px solid rgba(233, 230, 222, .3);
+  border-radius: 50%;
+  bottom: 24px;
+  color: var(--paper);
+  display: flex;
+  font-family: var(--sans);
+  font-size: 18px;
+  height: 40px;
+  justify-content: center;
+  line-height: 1;
+  position: fixed;
+  left: 24px;
+  width: 40px;
+  z-index: 35;
+}
+.about-up-float:hover { background: #c5b19d; color: var(--ink); transform: translateY(-2px); }
+@media (max-width: 720px) {
+  .about-up-float { bottom: 18px; height: 38px; left: 18px; width: 38px; }
+}
 .whatsapp-float {
   align-items: center;
   background: #25d366;
