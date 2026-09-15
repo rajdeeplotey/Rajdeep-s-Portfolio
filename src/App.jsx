@@ -32,18 +32,6 @@ export default function App() {
     }
   }, [])
 
-  useEffect(() => {
-    const dampNormalScroll = (event) => {
-      if (event.ctrlKey || event.target.closest?.('.project-sequence-section')) return
-
-      event.preventDefault()
-      window.scrollBy({ top: event.deltaY * 0.8, left: 0 })
-    }
-
-    window.addEventListener('wheel', dampNormalScroll, { passive: false })
-    return () => window.removeEventListener('wheel', dampNormalScroll)
-  }, [])
-
   return (
     <div className="site-shell">
       <div className={`page-loader ${isLoading ? '' : 'page-loader-hidden'}`} aria-hidden="true">
