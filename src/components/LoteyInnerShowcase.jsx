@@ -1,6 +1,9 @@
 import { useEffect } from 'react'
 
-const loteyImages = ['/lotey-gate.png', '/lotey-staircase.png']
+const basePath = import.meta.env.BASE_URL
+const withBase = (path) => `${basePath}${path.replace(/^\/+/, '')}`
+
+const loteyImages = [withBase('lotey-gate.png'), withBase('lotey-staircase.png')]
 
 // Presentation-only: ProjectSequence's master ScrollTrigger drives these CSS variables.
 export default function LoteyInnerShowcase({ showcaseRef, reducedMotion }) {

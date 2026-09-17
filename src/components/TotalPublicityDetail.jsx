@@ -1,9 +1,12 @@
 import { handlePortfolioBack } from '../navigation'
 
+const basePath = import.meta.env.BASE_URL
+const withBase = (path) => `${basePath}${path.replace(/^\/+/, '')}`
+
 const totalImages = {
-  hero: '/total/total 1.png',
-  portfolio: '/total/total 2.png',
-  gallery: '/total/total 3.png',
+  hero: withBase('total/total 1.png'),
+  portfolio: withBase('total/total 2.png'),
+  gallery: withBase('total/total 3.png'),
 }
 
 const stack = [

@@ -26,7 +26,7 @@ export default function ProjectDetail({ slug }) {
   if (project.slug === 'lotey') return <LoteyDetail project={project} />
   if (project.slug === 'total-publicity') return <TotalPublicityDetail project={project} />
 
-  const imagePath = (frame) => `/sequences/${project.folder}/frame-${String(frame).padStart(4, '0')}.webp`
+  const imagePath = (frame) => `${import.meta.env.BASE_URL}sequences/${project.folder}/frame-${String(frame).padStart(4, '0')}.webp`
 
   return (
     <main className="project-detail-page">

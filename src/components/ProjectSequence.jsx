@@ -7,7 +7,7 @@ gsap.registerPlugin(ScrollTrigger)
 
 const TRANSITION_WINDOW = 0.12
 function getFramePath(folder, frameIndex) {
-  return `/sequences/${folder}/frame-${String(frameIndex + 1).padStart(4, '0')}.webp`
+  return `${import.meta.env.BASE_URL}sequences/${folder}/frame-${String(frameIndex + 1).padStart(4, '0')}.webp`
 }
 
 function getInitialReducedMotion() {

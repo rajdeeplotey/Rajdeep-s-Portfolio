@@ -1,11 +1,14 @@
 import { handlePortfolioBack } from '../navigation'
 
+const basePath = import.meta.env.BASE_URL
+const withBase = (path) => `${basePath}${path.replace(/^\/+/, '')}`
+
 const loteyImages = [
-  '/lotey/lotey%201.png',
-  '/lotey/lotey%202.png',
-  '/lotey/lotey%203.png',
-  '/lotey/lotey%204.png',
-  '/lotey/lotey%205.png',
+  withBase('lotey/lotey%201.png'),
+  withBase('lotey/lotey%202.png'),
+  withBase('lotey/lotey%203.png'),
+  withBase('lotey/lotey%204.png'),
+  withBase('lotey/lotey%205.png'),
 ]
 
 const loteyHeroThumbnails = [loteyImages[1], loteyImages[2], loteyImages[3]]

@@ -9,7 +9,7 @@ const FRAME_COUNT = 78;
 // Protected active hero surface. Change only when the user explicitly requests a hero update.
 function getFramePath(index) {
   const frameNumber = String(index + 1).padStart(4, "0");
-  return `/sequences/workflow-dark-webp/frame-${frameNumber}.webp`;
+  return `${import.meta.env.BASE_URL}sequences/workflow-dark-webp/frame-${frameNumber}.webp`;
 }
 
 export default function WorkflowSequence() {

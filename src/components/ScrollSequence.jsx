@@ -19,6 +19,9 @@ export default function ScrollSequence({
 }) {
   const canvasRef = useRef(null)
   const triggerRef = useRef(null)
+  const resolvedFolder = folder.startsWith('/')
+    ? `${import.meta.env.BASE_URL}${folder.replace(/^\/+/, '')}`
+    : `${import.meta.env.BASE_URL}${folder}`
 
   useLayoutEffect(() => {
     const canvas = canvasRef.current
@@ -27,7 +30,7 @@ export default function ScrollSequence({
     const context = canvas.getContext('2d')
     const frames = Array.from({ length: frameCount }, (_, index) => {
       const image = new Image()
-      image.src = `${folder}/${framePrefix}${String(index + 1).padStart(frameDigits, '0')}.webp`
+      image.src = `${resolvedFolder}/${framePrefix}${String(index + 1).padStart(frameDigits, '0')}.webp`
       if (priority && index === 0) image.fetchPriority = 'high'
       return image
     })

@@ -1,3 +1,6 @@
+const basePath = import.meta.env.BASE_URL
+const withBase = (path) => `${basePath}${path.replace(/^\/+/, '')}`
+
 export const projects = [
   {
     number: '01',
@@ -9,10 +12,10 @@ export const projects = [
     frameCount: 124,
     liveUrl: 'https://lead-scoring-beta.vercel.app/index.html',
     images: {
-      hero: '/b%20socio/b%20socio%201.png',
-      scoring: '/b%20socio/b%20socio%202.png',
-      feature: '/b%20socio/b%20socio%203.png',
-      final: '/b%20socio/b%20socio%204.png',
+      hero: withBase('b%20socio/b%20socio%201.png'),
+      scoring: withBase('b%20socio/b%20socio%202.png'),
+      feature: withBase('b%20socio/b%20socio%203.png'),
+      final: withBase('b%20socio/b%20socio%204.png'),
     },
     theme: { primary: '#2f7df4', secondary: '#31d7e9', glow: '#5b4df5' },
     overview: 'An intelligent lead-scoring system that helps teams identify high-value opportunities and focus sales effort where it matters most.',
