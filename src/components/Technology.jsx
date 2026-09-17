@@ -49,7 +49,7 @@ export default function Technology() {
         </div>
         <div id="contact" className="technology-contact" data-reveal>
           <span>Have a thoughtful project in mind?</span>
-          <a href="mailto:hello@alexmorgan.dev">hello@alexmorgan.dev <b>↗</b></a>
+          <a href="mailto:rajdeeplotey21@gmail.com">rajdeeplotey21@gmail.com <b>↗</b></a>
         </div>
       </section>
     </SectionTransition>

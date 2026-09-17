@@ -27,10 +27,6 @@ export function handlePortfolioBack(event) {
   if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
 
   event.preventDefault()
-  if (window.history.state?.projectReturn) {
-    window.history.back()
-    return
-  }
-
-  navigateWithinApp('/#work', {}, true)
+  const projectId = window.location.pathname.match(/^\/projects\/([^/]+)\/?$/)?.[1]
+  navigateWithinApp('/#work', { projectReturn: true, projectId }, true)
 }

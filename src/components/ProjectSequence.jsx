@@ -47,6 +47,8 @@ export default function ProjectSequence({ projects }) {
     const images = projects.map(() => [])
     const loaded = projects.map(() => new Set())
     const loading = projects.map(() => new Set())
+    let renderRaf = null
+    let pendingProgress = playheadRef.current.progress
 
     const getNearestLoadedFrame = (projectIndex, requestedFrame) => {
       const available = [...loaded[projectIndex]]
@@ -188,6 +190,15 @@ export default function ProjectSequence({ projects }) {
       updateMetadata(progress)
     }
 
+    const requestRender = (progress) => {
+      pendingProgress = progress
+      if (renderRaf !== null) return
+      renderRaf = requestAnimationFrame(() => {
+        renderRaf = null
+        renderProgress(pendingProgress)
+      })
+    }
+
     const resizeCanvas = () => {
       const rect = canvas.getBoundingClientRect()
       const dpr = Math.min(window.devicePixelRatio || 1, 2)
@@ -198,7 +209,7 @@ export default function ProjectSequence({ projects }) {
       context.setTransform(dpr, 0, 0, dpr, 0, 0)
       context.imageSmoothingEnabled = true
       context.imageSmoothingQuality = 'high'
-      renderProgress(playheadRef.current.progress)
+      requestRender(playheadRef.current.progress)
     }
 
     const loadFrame = (projectIndex, frameIndex) => {
@@ -213,7 +224,7 @@ export default function ProjectSequence({ projects }) {
         images[projectIndex][frameIndex] = image
         loaded[projectIndex].add(frameIndex)
         loading[projectIndex].delete(frameIndex)
-        renderProgress(playheadRef.current.progress)
+        requestRender(playheadRef.current.progress)
       }
       image.onerror = () => loading[projectIndex].delete(frameIndex)
     }
@@ -256,7 +267,7 @@ export default function ProjectSequence({ projects }) {
       }
       const frameIndex = Math.round(localProgress * (projects[projectIndex].frameCount - 1))
       loadFrame(projectIndex, frameIndex)
-      renderProgress(progress)
+      requestRender(progress)
     }
 
     loadActiveAndNext(0)
@@ -298,6 +309,7 @@ export default function ProjectSequence({ projects }) {
       window.removeEventListener('resize', handleResize)
       if (resizeRaf !== null) cancelAnimationFrame(resizeRaf)
       if (refreshRaf !== null) cancelAnimationFrame(refreshRaf)
+      if (renderRaf !== null) cancelAnimationFrame(renderRaf)
       gsapContext.revert()
       clearStalePin()
       timersRef.current.forEach((timer) => window.clearTimeout(timer))

@@ -31,43 +31,60 @@ function PortfolioHome() {
   const [isContactOpen, setIsContactOpen] = useState(false)
   const [isContactClosing, setIsContactClosing] = useState(false)
   const [contactPosition, setContactPosition] = useState({ top: 92, left: 0, transformOrigin: 'top right' })
+  const backToTopVisibleRef = useRef(false)
+  const hasRestoredPortfolioScrollRef = useRef(false)
   const contactPanelRef = useRef(null)
   const contactCloseTimerRef = useRef(null)
   const returnTweenRef = useRef(null)
 
   useLayoutEffect(() => {
+    if (hasRestoredPortfolioScrollRef.current) return undefined
+    hasRestoredPortfolioScrollRef.current = true
     window.history.scrollRestoration = 'manual'
     const savedPosition = sessionStorage.getItem(portfolioReturnScrollKey)
     if (savedPosition === null) {
       const resetToTop = () => window.scrollTo(0, 0)
       resetToTop()
-      requestAnimationFrame(() => {
+      const firstFrame = requestAnimationFrame(() => {
         resetToTop()
-        requestAnimationFrame(resetToTop)
+        secondFrame = requestAnimationFrame(resetToTop)
       })
-      return
+      let secondFrame = null
+      return () => {
+        cancelAnimationFrame(firstFrame)
+        if (secondFrame !== null) cancelAnimationFrame(secondFrame)
+      }
     }
 
-    sessionStorage.removeItem(portfolioReturnScrollKey)
     let position
     try {
       position = JSON.parse(savedPosition)
     } catch {
-      return
+      sessionStorage.removeItem(portfolioReturnScrollKey)
+      return undefined
     }
 
     const scrollY = Number(position.scrollY)
-    if (!Number.isFinite(scrollY)) return
+    if (!Number.isFinite(scrollY)) {
+      sessionStorage.removeItem(portfolioReturnScrollKey)
+      return undefined
+    }
+    sessionStorage.removeItem(portfolioReturnScrollKey)
 
     const restorePosition = () => {
       window.scrollTo(0, Math.max(0, scrollY))
     }
 
     restorePosition()
-    requestAnimationFrame(() => {
+    const firstFrame = requestAnimationFrame(() => {
       restorePosition()
-      requestAnimationFrame(restorePosition)
+      secondFrame = requestAnimationFrame(restorePosition)
     })
+    let secondFrame = null
+    return () => {
+      cancelAnimationFrame(firstFrame)
+      if (secondFrame !== null) cancelAnimationFrame(secondFrame)
+    }
   }, [])
 
   const animateToTop = (startScroll = window.scrollY) => {
@@ -115,7 +132,10 @@ function PortfolioHome() {
 
       rafId = window.requestAnimationFrame(() => {
         rafId = null
-        setIsBackToTopVisible(window.scrollY > window.innerHeight)
+        const nextIsVisible = window.scrollY > window.innerHeight
+        if (nextIsVisible === backToTopVisibleRef.current) return
+        backToTopVisibleRef.current = nextIsVisible
+        setIsBackToTopVisible(nextIsVisible)
       })
     }
 

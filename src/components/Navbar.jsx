@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const links = [
   { label: 'About', href: '#about', target: '#about' },
@@ -13,6 +13,7 @@ const cta = { label: "Let's Talk", href: '#contact', target: '#contact' }
 export default function Navbar({ onTalkClick }) {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+  const isScrolledRef = useRef(false)
 
   useEffect(() => {
     let rafId = null
@@ -22,7 +23,10 @@ export default function Navbar({ onTalkClick }) {
 
       rafId = window.requestAnimationFrame(() => {
         rafId = null
-        setIsScrolled(window.scrollY > 40)
+        const nextIsScrolled = window.scrollY > 40
+        if (nextIsScrolled === isScrolledRef.current) return
+        isScrolledRef.current = nextIsScrolled
+        setIsScrolled(nextIsScrolled)
       })
     }
 

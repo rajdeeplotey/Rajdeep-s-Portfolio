@@ -50,6 +50,7 @@ export default function WorkflowSequence() {
     const playhead = { frame: 0 };
 
     let lastDrawnFrame = -1;
+    let lastDrawnImage = -1;
     const drawFrame = (index) => {
       const requestedIndex = Math.max(0, Math.min(FRAME_COUNT - 1, index));
       const availableIndex = loadedFrames.has(requestedIndex)
@@ -58,8 +59,9 @@ export default function WorkflowSequence() {
       const image = images[availableIndex];
 
       if (!image?.naturalWidth || !image.naturalHeight) return;
-      if (requestedIndex === lastDrawnFrame && canvas.width) return;
+      if (requestedIndex === lastDrawnFrame && availableIndex === lastDrawnImage && canvas.width) return;
       lastDrawnFrame = requestedIndex;
+      lastDrawnImage = availableIndex;
 
       const containerWidth = canvas.clientWidth;
       const containerHeight = canvas.clientHeight;
@@ -124,6 +126,8 @@ export default function WorkflowSequence() {
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
 
+      lastDrawnFrame = -1;
+      lastDrawnImage = -1;
       drawFrame(Math.round(playhead.frame));
       updateTypographyFromScroll();
     };
