@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -17,11 +17,23 @@ export default function WorkflowSequence() {
   const canvasRef = useRef(null);
   const overlayRef = useRef(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const section = sectionRef.current;
     const canvas = canvasRef.current;
 
     if (!section || !canvas) return;
+
+    const clearStalePin = () => {
+      ScrollTrigger.getAll()
+        .filter((trigger) => trigger.trigger === section)
+        .forEach((trigger) => trigger.kill(true));
+      const spacer = section.parentElement;
+      if (!spacer?.classList.contains("pin-spacer")) return;
+      spacer.parentNode.insertBefore(section, spacer);
+      spacer.remove();
+    };
+
+    clearStalePin();
 
     const ctx = canvas.getContext("2d");
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -114,7 +126,6 @@ export default function WorkflowSequence() {
 
       drawFrame(Math.round(playhead.frame));
       updateTypographyFromScroll();
-      ScrollTrigger.refresh();
     };
 
     images.forEach((image, index) => {
@@ -128,24 +139,33 @@ export default function WorkflowSequence() {
 
     resizeCanvas();
 
-    const animation = reducedMotion ? null : gsap.to(playhead, {
-      frame: FRAME_COUNT - 1,
-      ease: "none",
+    let animation = null;
+    const gsapContext = gsap.context(() => {
+      if (reducedMotion) return;
 
-      scrollTrigger: {
-        trigger: section,
-        start: "top top",
-        end: () => `+=${window.innerWidth <= 800 ? 3600 : 3000}`,
-        scrub: 0.55,
-        pin: true,
-      },
+      animation = gsap.to(playhead, {
+        frame: FRAME_COUNT - 1,
+        ease: "none",
 
-      onUpdate: () => {
-        drawFrame(Math.round(playhead.frame));
-      },
-    });
+        scrollTrigger: {
+          trigger: section,
+          start: "top top",
+          end: () => `+=${window.innerWidth <= 800 ? 3600 : 3000}`,
+          scrub: 0.55,
+          pin: true,
+        },
+
+        onUpdate: () => {
+          drawFrame(Math.round(playhead.frame));
+        },
+      });
+    }, section);
 
     let resizeRaf = null;
+    let refreshRaf = requestAnimationFrame(() => {
+      refreshRaf = null;
+      ScrollTrigger.refresh();
+    });
     const handleResize = () => {
       if (resizeRaf !== null) {
         cancelAnimationFrame(resizeRaf);
@@ -154,6 +174,7 @@ export default function WorkflowSequence() {
       resizeRaf = requestAnimationFrame(() => {
         resizeRaf = null;
         resizeCanvas();
+        ScrollTrigger.refresh();
       });
     };
 
@@ -165,11 +186,9 @@ export default function WorkflowSequence() {
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("scroll", updateTypographyFromScroll);
       if (resizeRaf !== null) cancelAnimationFrame(resizeRaf);
-      animation?.kill();
-
-      if (animation?.scrollTrigger) {
-        animation.scrollTrigger.kill();
-      }
+      if (refreshRaf !== null) cancelAnimationFrame(refreshRaf);
+      gsapContext.revert();
+      clearStalePin();
       images.forEach((image) => {
         image.src = "";
       });

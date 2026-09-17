@@ -30,6 +30,18 @@ export default function ProjectSequence({ projects }) {
     const canvas = canvasRef.current
     if (!section || !canvas) return undefined
 
+    const clearStalePin = () => {
+      ScrollTrigger.getAll()
+        .filter((trigger) => trigger.trigger === section)
+        .forEach((trigger) => trigger.kill(true))
+      const spacer = section.parentElement
+      if (!spacer?.classList.contains('pin-spacer')) return
+      spacer.parentNode.insertBefore(section, spacer)
+      spacer.remove()
+    }
+
+    clearStalePin()
+
     const context = canvas.getContext('2d')
     const projectCount = projects.length
     const images = projects.map(() => [])
@@ -187,7 +199,6 @@ export default function ProjectSequence({ projects }) {
       context.imageSmoothingEnabled = true
       context.imageSmoothingQuality = 'high'
       renderProgress(playheadRef.current.progress)
-      ScrollTrigger.refresh()
     }
 
     const loadFrame = (projectIndex, frameIndex) => {
@@ -251,10 +262,9 @@ export default function ProjectSequence({ projects }) {
     loadActiveAndNext(0)
     resizeCanvas()
 
-    let trigger
     const gsapContext = gsap.context(() => {
       if (!reducedMotion) {
-        trigger = gsap.to(playheadRef.current, {
+        gsap.to(playheadRef.current, {
           progress: 1,
           ease: 'none',
           scrollTrigger: {
@@ -270,11 +280,16 @@ export default function ProjectSequence({ projects }) {
     }, section)
 
     let resizeRaf = null
+    let refreshRaf = requestAnimationFrame(() => {
+      refreshRaf = null
+      ScrollTrigger.refresh()
+    })
     const handleResize = () => {
       if (resizeRaf !== null) cancelAnimationFrame(resizeRaf)
       resizeRaf = requestAnimationFrame(() => {
         resizeRaf = null
         resizeCanvas()
+        ScrollTrigger.refresh()
       })
     }
 
@@ -282,9 +297,9 @@ export default function ProjectSequence({ projects }) {
     return () => {
       window.removeEventListener('resize', handleResize)
       if (resizeRaf !== null) cancelAnimationFrame(resizeRaf)
-      trigger?.scrollTrigger?.kill()
-      trigger?.kill()
+      if (refreshRaf !== null) cancelAnimationFrame(refreshRaf)
       gsapContext.revert()
+      clearStalePin()
       timersRef.current.forEach((timer) => window.clearTimeout(timer))
       timersRef.current.clear()
       images.flat().forEach((image) => { if (image) image.src = '' })
