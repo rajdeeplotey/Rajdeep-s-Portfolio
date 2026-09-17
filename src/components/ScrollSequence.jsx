@@ -64,7 +64,7 @@ export default function ScrollSequence({
         trigger: canvas,
         start: 'top bottom',
         end,
-        scrub: true,
+        scrub: 0.5,
         onUpdate: (self) => drawFrame(Math.round(self.progress * (frameCount - 1))),
       },
     })

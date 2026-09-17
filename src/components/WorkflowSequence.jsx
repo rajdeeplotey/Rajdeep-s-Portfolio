@@ -24,6 +24,7 @@ export default function WorkflowSequence() {
     if (!section || !canvas) return;
 
     const ctx = canvas.getContext("2d");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const images = Array.from({ length: FRAME_COUNT }, (_, index) => {
       const image = new Image();
@@ -36,6 +37,7 @@ export default function WorkflowSequence() {
     let fallbackFrame = -1;
     const playhead = { frame: 0 };
 
+    let lastDrawnFrame = -1;
     const drawFrame = (index) => {
       const requestedIndex = Math.max(0, Math.min(FRAME_COUNT - 1, index));
       const availableIndex = loadedFrames.has(requestedIndex)
@@ -44,6 +46,8 @@ export default function WorkflowSequence() {
       const image = images[availableIndex];
 
       if (!image?.naturalWidth || !image.naturalHeight) return;
+      if (requestedIndex === lastDrawnFrame && canvas.width) return;
+      lastDrawnFrame = requestedIndex;
 
       const containerWidth = canvas.clientWidth;
       const containerHeight = canvas.clientHeight;
@@ -124,7 +128,7 @@ export default function WorkflowSequence() {
 
     resizeCanvas();
 
-    const animation = gsap.to(playhead, {
+    const animation = reducedMotion ? null : gsap.to(playhead, {
       frame: FRAME_COUNT - 1,
       ease: "none",
 
@@ -132,7 +136,7 @@ export default function WorkflowSequence() {
         trigger: section,
         start: "top top",
         end: () => `+=${window.innerWidth <= 800 ? 3600 : 3000}`,
-        scrub: true,
+        scrub: 0.55,
         pin: true,
       },
 
@@ -161,9 +165,9 @@ export default function WorkflowSequence() {
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("scroll", updateTypographyFromScroll);
       if (resizeRaf !== null) cancelAnimationFrame(resizeRaf);
-      animation.kill();
+      animation?.kill();
 
-      if (animation.scrollTrigger) {
+      if (animation?.scrollTrigger) {
         animation.scrollTrigger.kill();
       }
       images.forEach((image) => {

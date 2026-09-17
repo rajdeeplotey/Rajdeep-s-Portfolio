@@ -76,7 +76,7 @@ function PortfolioHome() {
     returnTweenRef.current?.kill()
     returnTweenRef.current = gsap.to(window, {
       duration: getReturnDuration(startScroll),
-      ease: 'power2.inOut',
+      ease: 'power3.inOut',
       scrollTo: { y: 0, autoKill: true },
       onComplete: () => { returnTweenRef.current = null },
     })

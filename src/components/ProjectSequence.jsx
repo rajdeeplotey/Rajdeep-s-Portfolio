@@ -261,7 +261,7 @@ export default function ProjectSequence({ projects }) {
             trigger: section,
             start: 'top top',
             end: () => `+=${window.innerWidth <= 800 ? 5600 : 10000}`,
-            scrub: true,
+            scrub: 0.65,
             pin: true,
             onUpdate: (self) => updateProgress(self.progress),
           },

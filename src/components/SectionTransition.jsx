@@ -19,12 +19,12 @@ export default function SectionTransition({ children, className = '', revealStar
 
       elements.forEach((element, index) => {
         gsap.fromTo(element,
-          { autoAlpha: 0, y: 34 },
+          { autoAlpha: 0, y: 24 },
           {
             autoAlpha: 1,
             y: 0,
-            duration: 0.9,
-            delay: index * 0.06,
+            duration: 0.78,
+            delay: index * 0.045,
             ease: 'power3.out',
             scrollTrigger: {
               trigger: element,

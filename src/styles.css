@@ -1916,3 +1916,32 @@ body { overflow-x: hidden; }
   .site-shell .contact-title { font-size: clamp(3.6rem, 15vw, 6.2rem); }
   .total-publicity-back { font-size: 24px; left: 4vw; top: 18px; }
 }
+
+/* Shared motion polish: keep hover states reversible and transform-only. */
+.about-up-float,
+.whatsapp-float,
+.project-card .project-visual::before,
+.contact-cta,
+.contact-cta span,
+.technology-contact a,
+.tech-stack-list span {
+  transition-timing-function: cubic-bezier(.22, 1, .36, 1);
+}
+.about-up-float,
+.whatsapp-float {
+  transition: background-color .28s cubic-bezier(.22, 1, .36, 1), color .28s cubic-bezier(.22, 1, .36, 1), opacity .28s cubic-bezier(.22, 1, .36, 1), transform .38s cubic-bezier(.22, 1, .36, 1);
+}
+.project-card .project-visual::before {
+  transition: transform .8s cubic-bezier(.22, 1, .36, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+
+}
