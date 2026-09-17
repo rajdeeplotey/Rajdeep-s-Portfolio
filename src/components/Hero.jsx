@@ -1,5 +1,6 @@
 import ScrollSequence from './ScrollSequence'
 
+// Protected hero surface. Change only when the user explicitly requests a hero update.
 export default function Hero() {
   return (
     <section className="hero section-pad" aria-labelledby="hero-title">
@@ -10,7 +11,7 @@ export default function Hero() {
         <a className="text-link reveal" href="#work">Explore selected work <span>↘</span></a>
       </div>
       <div className="hero-sequence-wrap">
-        <ScrollSequence folder="/sequences/hero" frameCount={90} priority className="hero-sequence" />
+        <ScrollSequence folder="/sequences/hero" frameCount={90} priority className="hero-sequence" end="bottom 15%" />
       </div>
       <div className="hero-meta"><span>Based in Amsterdam</span><span>52°22′N / 4°54′E</span><span>01 — 06</span></div>
     </section>

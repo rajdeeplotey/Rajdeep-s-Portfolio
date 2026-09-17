@@ -10,25 +10,56 @@ const links = [
 
 const cta = { label: "Let's Talk", href: '#contact', target: '#contact' }
 
-export default function Navbar() {
+export default function Navbar({ onTalkClick }) {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
 
   useEffect(() => {
-    const updateHeader = () => setIsScrolled(window.scrollY > 40)
+    let rafId = null
+
+    const updateHeader = () => {
+      if (rafId !== null) return
+
+      rafId = window.requestAnimationFrame(() => {
+        rafId = null
+        setIsScrolled(window.scrollY > 40)
+      })
+    }
+
     updateHeader()
     window.addEventListener('scroll', updateHeader, { passive: true })
-    return () => window.removeEventListener('scroll', updateHeader)
+
+    return () => {
+      window.removeEventListener('scroll', updateHeader)
+      if (rafId !== null) window.cancelAnimationFrame(rafId)
+    }
   }, [])
 
+  useEffect(() => {
+    if (!isOpen) return undefined
+
+    const handleOutsidePointer = (event) => {
+      if (!event.target.closest('.navbar')) closeMenu()
+    }
+
+    document.addEventListener('pointerdown', handleOutsidePointer)
+    return () => document.removeEventListener('pointerdown', handleOutsidePointer)
+  }, [isOpen])
+
   const closeMenu = () => setIsOpen(false)
+
+  const openContactOptions = (event) => {
+    event.preventDefault()
+    closeMenu()
+    onTalkClick(event)
+  }
 
   const navigateTo = (event, target) => {
     const section = document.querySelector(target)
     if (!section) return
 
     event.preventDefault()
-    section.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    section.scrollIntoView({ behavior: 'auto', block: 'start' })
     window.history.replaceState(null, '', target.startsWith('#') ? target : `#${section.id || 'work'}`)
     closeMenu()
   }
@@ -54,7 +85,7 @@ export default function Navbar() {
           <a href={href} key={label} onClick={(event) => navigateTo(event, target)}>{label}</a>
         ))}
       </nav>
-      <a className="navbar-cta navbar-link-prominent" href={cta.href} onClick={(event) => navigateTo(event, cta.target)}>{cta.label}</a>
+      <a className="navbar-cta navbar-link-prominent" href={cta.href} onClick={openContactOptions}>{cta.label}</a>
     </header>
   )
 }

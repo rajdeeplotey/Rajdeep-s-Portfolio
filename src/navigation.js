@@ -1,0 +1,36 @@
+export const portfolioReturnScrollKey = 'portfolio-project-return-scroll'
+
+export function navigateWithinApp(path, state = {}, replace = false) {
+  const method = replace ? 'replaceState' : 'pushState'
+  window.history[method](state, '', path)
+  window.dispatchEvent(new PopStateEvent('popstate'))
+}
+
+export function handleProjectNavigation(event) {
+  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+
+  event.preventDefault()
+  const href = event.currentTarget.getAttribute('href')
+  const projectId = href?.match(/^\/projects\/([^/]+)\/?$/)?.[1]
+  const projectElement = projectId
+    ? document.querySelector(`.project-sequence-meta.project-sequence-${projectId}`)
+    : null
+  sessionStorage.setItem(portfolioReturnScrollKey, JSON.stringify({
+    projectId,
+    scrollY: window.scrollY,
+    projectOffset: projectElement?.getBoundingClientRect().top ?? null,
+  }))
+  navigateWithinApp(href, { projectReturn: true })
+}
+
+export function handlePortfolioBack(event) {
+  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+
+  event.preventDefault()
+  if (window.history.state?.projectReturn) {
+    window.history.back()
+    return
+  }
+
+  navigateWithinApp('/#work', {}, true)
+}

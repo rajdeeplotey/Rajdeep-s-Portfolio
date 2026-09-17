@@ -12,7 +12,7 @@ export default function Capabilities() {
       <div className="what-builds-intro">
         <div className="what-builds-kicker"><p>What I build</p></div>
         <div className="what-builds-heading">
-          <h2 id="what-builds-title" className="what-builds-title">,<br /><em>from interface to intelligence.</em></h2>
+          <h2 id="what-builds-title" className="what-builds-title">Across the stack,<br /><em>from interface to intelligence.</em></h2>
           <p className="what-builds-support">I build complete digital products across frontend, backend, AI, automation, and data.</p>
         </div>
       </div>

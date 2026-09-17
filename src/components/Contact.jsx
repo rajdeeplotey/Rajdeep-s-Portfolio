@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 
-export default function Contact() {
+export default function Contact({ onTalkClick }) {
   const sectionRef = useRef(null)
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export default function Contact() {
         <div className="contact-main">
           <h2 id="contact-title" className="contact-title contact-reveal">Have an idea?<br /><em>Let&apos;s build it.</em></h2>
           <p className="contact-support contact-reveal">Whether it&apos;s a full-stack application, an AI-powered system, an automated workflow, or an interactive web experience — I&apos;m open to building ambitious digital products.</p>
-          <a className="contact-cta contact-reveal" href="mailto:rajdeeplotey21@gmail.com">Let&apos;s talk <span>→</span></a>
+          <a className="contact-cta contact-reveal" href="mailto:rajdeeplotey21@gmail.com" onClick={(event) => { event.preventDefault(); onTalkClick(event) }}>Let&apos;s talk <span>→</span></a>
         </div>
       </div>
     </section>

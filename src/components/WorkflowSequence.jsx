@@ -6,6 +6,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 const FRAME_COUNT = 78;
 
+// Protected active hero surface. Change only when the user explicitly requests a hero update.
 function getFramePath(index) {
   const frameNumber = String(index + 1).padStart(4, "0");
   return `/sequences/workflow-dark-webp/frame-${frameNumber}.webp`;
@@ -70,9 +71,17 @@ export default function WorkflowSequence() {
     };
 
     const updateTypography = (progress) => {
+      const isMobile = window.matchMedia("(max-width: 768px)").matches;
+      if (isMobile) {
+        gsap.set(overlayRef.current, {
+          autoAlpha: 1,
+          clearProps: "transform",
+        });
+        return;
+      }
+
       gsap.set(overlayRef.current, {
         autoAlpha: 1 - (0.84 * progress),
-        y: -64 * progress,
         scale: 1 - (0.04 * progress),
       });
     };
@@ -101,6 +110,7 @@ export default function WorkflowSequence() {
 
       drawFrame(Math.round(playhead.frame));
       updateTypographyFromScroll();
+      ScrollTrigger.refresh();
     };
 
     images.forEach((image, index) => {
@@ -121,7 +131,7 @@ export default function WorkflowSequence() {
       scrollTrigger: {
         trigger: section,
         start: "top top",
-        end: "+=5000",
+        end: () => `+=${window.innerWidth <= 800 ? 3600 : 3000}`,
         scrub: true,
         pin: true,
       },
@@ -131,13 +141,26 @@ export default function WorkflowSequence() {
       },
     });
 
-    window.addEventListener("resize", resizeCanvas);
+    let resizeRaf = null;
+    const handleResize = () => {
+      if (resizeRaf !== null) {
+        cancelAnimationFrame(resizeRaf);
+      }
+
+      resizeRaf = requestAnimationFrame(() => {
+        resizeRaf = null;
+        resizeCanvas();
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
     window.addEventListener("scroll", updateTypographyFromScroll, { passive: true });
     updateTypographyFromScroll();
 
     return () => {
-      window.removeEventListener("resize", resizeCanvas);
+      window.removeEventListener("resize", handleResize);
       window.removeEventListener("scroll", updateTypographyFromScroll);
+      if (resizeRaf !== null) cancelAnimationFrame(resizeRaf);
       animation.kill();
 
       if (animation.scrollTrigger) {
@@ -155,21 +178,24 @@ export default function WorkflowSequence() {
       className="workflow-sequence"
     >
       <div ref={overlayRef} className="workflow-overlay">
-        <p className="workflow-label">
-          FULL-STACK DEVELOPER
-        </p>
+        <div className="workflow-content">
+          <p className="workflow-label">FULL-STACK DEVELOPER</p>
 
-        <h2>
-          I build digital experiences
-          <br />
-          that move with your ideas.
-        </h2>
+          <h2>
+            I build digital experiences
+            <br />
+            <em>that move with your ideas.</em>
+          </h2>
 
-        <p className="workflow-description">
-          Modern web applications, intelligent workflows,
-          and scalable digital products — from concept to deployment.
-        </p>
+          <p className="workflow-description">
+            Modern web applications, intelligent workflows,
+            and scalable digital products — from concept to deployment.
+          </p>
 
+          <p className="workflow-technology">FULL-STACK • AI/ML • MERN • PYTHON</p>
+
+          <span className="workflow-scroll-cue">Scroll to explore <b>↓</b></span>
+        </div>
       </div>
 
       <canvas

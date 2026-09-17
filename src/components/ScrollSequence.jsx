@@ -15,6 +15,7 @@ export default function ScrollSequence({
   frameDigits = 4,
   className = '',
   priority = false,
+  end = 'bottom top',
 }) {
   const canvasRef = useRef(null)
   const triggerRef = useRef(null)
@@ -59,7 +60,7 @@ export default function ScrollSequence({
       scrollTrigger: {
         trigger: canvas,
         start: 'top bottom',
-        end: 'bottom top',
+        end,
         scrub: true,
         onUpdate: (self) => drawFrame(Math.round(self.progress * (frameCount - 1))),
       },

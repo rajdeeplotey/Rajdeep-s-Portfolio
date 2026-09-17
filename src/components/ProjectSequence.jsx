@@ -1,17 +1,11 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { handleProjectNavigation } from '../navigation'
 
 gsap.registerPlugin(ScrollTrigger)
 
 const TRANSITION_WINDOW = 0.12
-const projectTitles = [
-  ['Business data', 'made smarter.'],
-  ['Digital presence', 'made to perform.'],
-  ['Traditional business', 'made digital.'],
-  ['Digital experiences', 'made memorable.'],
-]
-
 function getFramePath(folder, frameIndex) {
   return `/sequences/${folder}/frame-${String(frameIndex + 1).padStart(4, '0')}.webp`
 }
@@ -77,7 +71,7 @@ export default function ProjectSequence({ projects }) {
         ? (isMobile ? 0.5 : 0.42)
         : 0.5
       const zoom = isTotalPublicity
-        ? (isMobile ? 1 : 1.6)
+        ? (isMobile ? 1 : 1.4)
         : 1
       const cropShiftY = isTotalPublicity && !isMobile ? -height * 0.04 : 0
       drawImageCover(image, width, height, translateY + cropShiftY, opacity, focalY, zoom)
@@ -193,6 +187,7 @@ export default function ProjectSequence({ projects }) {
       context.imageSmoothingEnabled = true
       context.imageSmoothingQuality = 'high'
       renderProgress(playheadRef.current.progress)
+      ScrollTrigger.refresh()
     }
 
     const loadFrame = (projectIndex, frameIndex) => {
@@ -274,9 +269,19 @@ export default function ProjectSequence({ projects }) {
       }
     }, section)
 
-    window.addEventListener('resize', resizeCanvas)
+    let resizeRaf = null
+    const handleResize = () => {
+      if (resizeRaf !== null) cancelAnimationFrame(resizeRaf)
+      resizeRaf = requestAnimationFrame(() => {
+        resizeRaf = null
+        resizeCanvas()
+      })
+    }
+
+    window.addEventListener('resize', handleResize)
     return () => {
-      window.removeEventListener('resize', resizeCanvas)
+      window.removeEventListener('resize', handleResize)
+      if (resizeRaf !== null) cancelAnimationFrame(resizeRaf)
       trigger?.scrollTrigger?.kill()
       trigger?.kill()
       gsapContext.revert()
@@ -287,16 +292,29 @@ export default function ProjectSequence({ projects }) {
   }, [projects, reducedMotion])
 
   return (
-    <section ref={sectionRef} id="work" className={`projects project-sequence-section ${reducedMotion ? 'project-sequence-reduced' : ''}`} aria-labelledby="projects-title">
+    <>
+      <section ref={sectionRef} id="work" className={`projects project-sequence-section project-sequence-active-${projects[activeIndex].slug} ${reducedMotion ? 'project-sequence-reduced' : ''}`} aria-labelledby="projects-title">
       <canvas ref={canvasRef} className="project-sequence-canvas" aria-label="Selected work project sequence" />
       <div className="project-sequence-overlay" aria-hidden="true" />
       <div className="project-sequence-heading">
         <span className="project-sequence-index">01 / Selected work</span>
-        <h2 id="projects-title">{projectTitles[activeIndex][0]}<br /><em>{projectTitles[activeIndex][1]}</em></h2>
       </div>
       {projects.map((project, index) => (
+        <a
+          className={`project-sequence-hitarea project-sequence-${project.slug} ${index === activeIndex ? 'is-active' : ''}`}
+          href={`/projects/${project.slug}`}
+          key={`${project.folder}-hitarea`}
+          aria-label={`View ${project.title} project details`}
+          aria-hidden={index !== activeIndex}
+          tabIndex={index === activeIndex ? 0 : -1}
+          onClick={handleProjectNavigation}
+        >
+          <span className="project-sequence-explore-cue">CLICK TO EXPLORE <b>↗</b></span>
+        </a>
+      ))}
+      {projects.map((project, index) => (
         <div
-          className="project-sequence-meta"
+          className={`project-sequence-meta project-sequence-${project.slug}`}
           key={project.folder}
           ref={(element) => { metadataRefs.current[index] = element }}
           aria-hidden={index !== activeIndex}
@@ -308,9 +326,9 @@ export default function ProjectSequence({ projects }) {
             <p>{project.category}</p>
             <span>{project.technology}</span>
           </div>
-          <span className="project-sequence-progress">0{index + 1} / 04</span>
         </div>
       ))}
     </section>
+    </>
   )
 }
