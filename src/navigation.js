@@ -34,5 +34,12 @@ export function handlePortfolioBack(event) {
 
   event.preventDefault()
   const projectId = window.location.pathname.match(/^\/projects\/([^/]+)\/?$/)?.[1]
+  const workSection = document.getElementById('work')
+  const targetScrollY = workSection ? Math.max(0, workSection.getBoundingClientRect().top + window.scrollY - 24) : 0
+  sessionStorage.setItem(portfolioReturnScrollKey, JSON.stringify({
+    projectId,
+    scrollY: targetScrollY,
+    smooth: true,
+  }))
   navigateWithinApp('/#work', { projectReturn: true, projectId }, true)
 }

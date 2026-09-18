@@ -72,6 +72,16 @@ function PortfolioHome() {
     sessionStorage.removeItem(portfolioReturnScrollKey)
 
     const restorePosition = () => {
+      if (position.smooth) {
+        returnTweenRef.current?.kill()
+        returnTweenRef.current = gsap.to(window, {
+          duration: getReturnDuration(Math.max(0, scrollY)),
+          ease: 'power3.inOut',
+          scrollTo: { y: Math.max(0, scrollY), autoKill: true },
+          onComplete: () => { returnTweenRef.current = null },
+        })
+        return
+      }
       window.scrollTo(0, Math.max(0, scrollY))
     }
 
