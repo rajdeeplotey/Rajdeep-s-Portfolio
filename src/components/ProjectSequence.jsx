@@ -25,6 +25,7 @@ export default function ProjectSequence({ projects }) {
   const lastRenderedFrameRef = useRef({ projectIndex: -1, frameIndex: -1 })
   const lastPreloadFrameRef = useRef({ projectIndex: -1, frameIndex: -1 })
   const preloadRafRef = useRef(null)
+  const metadataRef = useRef({ width: 0, height: 0, isMobile: false })
   const [activeIndex, setActiveIndex] = useState(0)
   const reducedMotion = getInitialReducedMotion()
 
@@ -47,6 +48,7 @@ export default function ProjectSequence({ projects }) {
 
     const context = canvas.getContext('2d')
     const projectCount = projects.length
+    metadataRef.current.isMobile = window.matchMedia('(max-width: 800px), (max-height: 500px) and (pointer: coarse)').matches
     const images = projects.map(() => [])
     const loaded = projects.map(() => new Set())
     const loading = projects.map(() => new Set())
@@ -62,7 +64,7 @@ export default function ProjectSequence({ projects }) {
     }
 
     const drawImageCover = (image, width, height, translateY = 0, opacity = 1, focalY = 0.5, zoom = 1) => {
-      const isMobile = window.matchMedia('(max-width: 800px), (max-height: 500px) and (pointer: coarse)').matches
+      const { isMobile } = metadataRef.current
       const scale = (isMobile
         ? Math.min(width / image.naturalWidth, height / image.naturalHeight)
         : Math.max(width / image.naturalWidth, height / image.naturalHeight)) * zoom
@@ -80,9 +82,7 @@ export default function ProjectSequence({ projects }) {
       const image = frameIndex === -1 ? null : images[projectIndex][frameIndex]
       if (!image?.naturalWidth || !image.naturalHeight) return
 
-      const width = canvas.clientWidth
-      const height = canvas.clientHeight
-      const isMobile = window.matchMedia('(max-width: 800px), (max-height: 500px) and (pointer: coarse)').matches
+      const { width, height, isMobile } = metadataRef.current
       const isTotalPublicity = projects[projectIndex].folder === 'total-publicity'
       const focalY = isTotalPublicity
         ? (isMobile ? 0.5 : 0.42)
@@ -177,11 +177,8 @@ export default function ProjectSequence({ projects }) {
     const renderProgress = (progress) => {
       const { projectIndex, localProgress } = getProjectPosition(progress)
       const transition = getTransition(progress)
-      const width = canvas.clientWidth
-      const height = canvas.clientHeight
-      const targetFrame = transition
-        ? Math.round(localProgress * (projects[projectIndex].frameCount - 1))
-        : Math.round(localProgress * (projects[projectIndex].frameCount - 1))
+      const { width, height } = metadataRef.current
+      const targetFrame = Math.round(localProgress * (projects[projectIndex].frameCount - 1))
 
       if (!transition && lastRenderedFrameRef.current.projectIndex === projectIndex && lastRenderedFrameRef.current.frameIndex === targetFrame) {
         updateMetadata(progress)
@@ -219,6 +216,11 @@ export default function ProjectSequence({ projects }) {
       const dpr = Math.min(window.devicePixelRatio || 1, 2)
       const width = Math.max(1, Math.round(rect.width))
       const height = Math.max(1, Math.round(rect.height))
+      metadataRef.current = {
+        width,
+        height,
+        isMobile: window.matchMedia('(max-width: 800px), (max-height: 500px) and (pointer: coarse)').matches,
+      }
       canvas.width = Math.round(width * dpr)
       canvas.height = Math.round(height * dpr)
       context.setTransform(dpr, 0, 0, dpr, 0, 0)
@@ -246,7 +248,8 @@ export default function ProjectSequence({ projects }) {
 
     const loadActiveAndNext = (projectIndex, targetFrame = 0, direction = 1) => {
       const frameCount = projects[projectIndex].frameCount
-      const preloadRange = 16
+      const isMobileSequence = metadataRef.current.isMobile
+      const preloadRange = isMobileSequence ? 8 : 16
       const startFrame = Math.max(0, targetFrame - preloadRange)
       const endFrame = Math.min(frameCount - 1, targetFrame + preloadRange)
       const candidates = []
@@ -264,10 +267,10 @@ export default function ProjectSequence({ projects }) {
           if (distanceA !== distanceB) return distanceA - distanceB
           return direction < 0 ? b - a : a - b
         })
-        .slice(0, 12)
+        .slice(0, isMobileSequence ? 8 : 12)
         .forEach((frameIndex) => loadFrame(projectIndex, frameIndex))
 
-      if (projectIndex + 1 < projectCount) {
+      if (!isMobileSequence && projectIndex + 1 < projectCount) {
         const nextProjectFrame = direction > 0 ? Math.min(projects[projectIndex + 1].frameCount - 1, Math.max(0, targetFrame)) : 0
         loadActiveAndNext(projectIndex + 1, nextProjectFrame, direction)
       }
