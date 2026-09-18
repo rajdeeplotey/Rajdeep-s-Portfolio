@@ -276,14 +276,30 @@ export default function ProjectSequence({ projects }) {
       }
     }
 
+    const preloadFullProjectIfMobile = (projectIndex) => {
+      if (!metadataRef.current.isMobile) return
+      const frameCount = projects[projectIndex].frameCount
+      if (loaded[projectIndex].size >= frameCount) return
+      for (let frameIndex = 0; frameIndex < frameCount; frameIndex += 1) {
+        if (!loaded[projectIndex].has(frameIndex) && !loading[projectIndex].has(frameIndex)) {
+          loadFrame(projectIndex, frameIndex)
+        }
+      }
+    }
+
     const queueProjectPreload = (projectIndex, targetFrame, direction = 1) => {
       if (lastPreloadFrameRef.current.projectIndex !== projectIndex || Math.abs(targetFrame - lastPreloadFrameRef.current.frameIndex) > 8) {
         lastPreloadFrameRef.current = { projectIndex, frameIndex: targetFrame }
         if (preloadRafRef.current !== null) cancelAnimationFrame(preloadRafRef.current)
         preloadRafRef.current = requestAnimationFrame(() => {
           preloadRafRef.current = null
-          loadActiveAndNext(projectIndex, targetFrame, direction)
-          if (projectIndex > 0) loadActiveAndNext(projectIndex - 1, projects[projectIndex - 1].frameCount - 1, -1)
+          if (metadataRef.current.isMobile) {
+            preloadFullProjectIfMobile(projectIndex)
+            if (projectIndex + 1 < projectCount) preloadFullProjectIfMobile(projectIndex + 1)
+          } else {
+            loadActiveAndNext(projectIndex, targetFrame, direction)
+            if (projectIndex > 0) loadActiveAndNext(projectIndex - 1, projects[projectIndex - 1].frameCount - 1, -1)
+          }
         })
       }
     }
