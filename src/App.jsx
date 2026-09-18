@@ -98,7 +98,17 @@ function PortfolioHome() {
   }, [])
 
   const animateToTop = (startScroll = window.scrollY) => {
-    if (startScroll <= 1) return
+    if (startScroll <= 1) {
+      if (window.matchMedia('(max-width: 720px)').matches) {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+      return
+    }
+
+    if (window.matchMedia('(max-width: 720px)').matches) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
 
     returnTweenRef.current?.kill()
     returnTweenRef.current = gsap.to(window, {

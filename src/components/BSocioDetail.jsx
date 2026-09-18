@@ -27,6 +27,16 @@ function activateTouchPull(event) {
   image.style.setProperty('transform', `translateX(${direction}px) scale(1.06)`, 'important')
 }
 
+function handleMobilePointerDisabled(event) {
+  if (window.matchMedia('(max-width: 800px)').matches) return
+  activateTouchPull(event)
+}
+
+function handlePointerReset(event) {
+  if (window.matchMedia('(max-width: 800px)').matches) return
+  resetFloatingImagePull(event)
+}
+
 export default function BSocioDetail({ project }) {
   return (
     <main className="bsocio-page">
@@ -61,7 +71,7 @@ export default function BSocioDetail({ project }) {
         )}
 
         <section className="bsocio-editorial" id="scoring">
-          <img className="bsocio-float-image bsocio-float-left" src={project.images.scoring} alt="B Socio scored businesses dashboard" loading="lazy" onPointerMove={(event) => updateFloatingImagePull(event, 'left')} onPointerDown={activateTouchPull} onPointerUp={resetFloatingImagePull} onPointerCancel={resetFloatingImagePull} onPointerLeave={resetFloatingImagePull} />
+          <img className="bsocio-float-image bsocio-float-left" src={project.images.scoring} alt="B Socio scored businesses dashboard" loading="lazy" onPointerMove={(event) => updateFloatingImagePull(event, 'left')} onPointerDown={handleMobilePointerDisabled} onPointerUp={handlePointerReset} onPointerCancel={handlePointerReset} onPointerLeave={handlePointerReset} />
           <div className="bsocio-editorial-copy">
             <span className="bsocio-star" aria-hidden="true">✦</span>
             <p className="bsocio-section-label">Intelligent lead scoring</p>
@@ -69,7 +79,7 @@ export default function BSocioDetail({ project }) {
             <p>BSOCIO turns behavioral and business data into a practical signal for prioritizing leads and making outreach more deliberate.</p>
             <div className="bsocio-flow-labels"><span>LEAD DATA</span><i>→</i><span>SCORING</span><i>→</i><span>ACTION</span></div>
           </div>
-          <img className="bsocio-float-image bsocio-float-right" src={project.images.feature} alt="B Socio manual lead entry interface" loading="lazy" onPointerMove={(event) => updateFloatingImagePull(event, 'right')} onPointerDown={activateTouchPull} onPointerUp={resetFloatingImagePull} onPointerCancel={resetFloatingImagePull} onPointerLeave={resetFloatingImagePull} />
+          <img className="bsocio-float-image bsocio-float-right" src={project.images.feature} alt="B Socio manual lead entry interface" loading="lazy" onPointerMove={(event) => updateFloatingImagePull(event, 'right')} onPointerDown={handleMobilePointerDisabled} onPointerUp={handlePointerReset} onPointerCancel={handlePointerReset} onPointerLeave={handlePointerReset} />
         </section>
 
         <section className="bsocio-context">
