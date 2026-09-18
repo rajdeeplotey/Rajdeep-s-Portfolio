@@ -22,6 +22,9 @@ export default function ProjectSequence({ projects }) {
   const playheadRef = useRef({ progress: 0 })
   const activeRef = useRef(0)
   const timersRef = useRef(new Set())
+  const lastRenderedFrameRef = useRef({ projectIndex: -1, frameIndex: -1 })
+  const lastPreloadFrameRef = useRef({ projectIndex: -1, frameIndex: -1 })
+  const preloadRafRef = useRef(null)
   const [activeIndex, setActiveIndex] = useState(0)
   const reducedMotion = getInitialReducedMotion()
 
@@ -176,6 +179,14 @@ export default function ProjectSequence({ projects }) {
       const transition = getTransition(progress)
       const width = canvas.clientWidth
       const height = canvas.clientHeight
+      const targetFrame = transition
+        ? Math.round(localProgress * (projects[projectIndex].frameCount - 1))
+        : Math.round(localProgress * (projects[projectIndex].frameCount - 1))
+
+      if (!transition && lastRenderedFrameRef.current.projectIndex === projectIndex && lastRenderedFrameRef.current.frameIndex === targetFrame) {
+        updateMetadata(progress)
+        return
+      }
 
       context.clearRect(0, 0, width, height)
       context.globalAlpha = 1
@@ -184,7 +195,11 @@ export default function ProjectSequence({ projects }) {
         drawProjectFrame(transition.from, projects[transition.from].frameCount - 1, -height * 0.1 * eased, 1 - (0.55 * eased))
         drawProjectFrame(transition.to, 0, height * 0.1 * (1 - eased), 0.45 + (0.55 * eased))
       } else {
-        drawProjectFrame(projectIndex, Math.round(localProgress * (projects[projectIndex].frameCount - 1)))
+        drawProjectFrame(projectIndex, targetFrame)
+        lastRenderedFrameRef.current = { projectIndex, frameIndex: targetFrame }
+      }
+      if (transition) {
+        lastRenderedFrameRef.current = { projectIndex: -1, frameIndex: -1 }
       }
       context.globalAlpha = 1
       updateMetadata(progress)
@@ -229,32 +244,45 @@ export default function ProjectSequence({ projects }) {
       image.onerror = () => loading[projectIndex].delete(frameIndex)
     }
 
-    const progressivelyLoad = (projectIndex) => {
+    const loadActiveAndNext = (projectIndex, targetFrame = 0, direction = 1) => {
       const frameCount = projects[projectIndex].frameCount
-      loadFrame(projectIndex, 0)
-      let nextFrame = 1
-      const loadBatch = () => {
-        for (let count = 0; count < 8 && nextFrame < frameCount; count += 1, nextFrame += 1) {
-          loadFrame(projectIndex, nextFrame)
-        }
-        if (nextFrame < frameCount) {
-          const timer = window.setTimeout(() => {
-            timersRef.current.delete(timer)
-            loadBatch()
-          }, 80)
-          timersRef.current.add(timer)
+      const preloadRange = 16
+      const startFrame = Math.max(0, targetFrame - preloadRange)
+      const endFrame = Math.min(frameCount - 1, targetFrame + preloadRange)
+      const candidates = []
+
+      for (let frameIndex = startFrame; frameIndex <= endFrame; frameIndex += 1) {
+        if (!loaded[projectIndex].has(frameIndex) && !loading[projectIndex].has(frameIndex)) {
+          candidates.push(frameIndex)
         }
       }
-      const timer = window.setTimeout(() => {
-        timersRef.current.delete(timer)
-        loadBatch()
-      }, 30)
-      timersRef.current.add(timer)
+
+      candidates
+        .sort((a, b) => {
+          const distanceA = Math.abs(a - targetFrame)
+          const distanceB = Math.abs(b - targetFrame)
+          if (distanceA !== distanceB) return distanceA - distanceB
+          return direction < 0 ? b - a : a - b
+        })
+        .slice(0, 12)
+        .forEach((frameIndex) => loadFrame(projectIndex, frameIndex))
+
+      if (projectIndex + 1 < projectCount) {
+        const nextProjectFrame = direction > 0 ? Math.min(projects[projectIndex + 1].frameCount - 1, Math.max(0, targetFrame)) : 0
+        loadActiveAndNext(projectIndex + 1, nextProjectFrame, direction)
+      }
     }
 
-    const loadActiveAndNext = (projectIndex) => {
-      progressivelyLoad(projectIndex)
-      if (projectIndex + 1 < projectCount) loadFrame(projectIndex + 1, 0)
+    const queueProjectPreload = (projectIndex, targetFrame, direction = 1) => {
+      if (lastPreloadFrameRef.current.projectIndex !== projectIndex || Math.abs(targetFrame - lastPreloadFrameRef.current.frameIndex) > 8) {
+        lastPreloadFrameRef.current = { projectIndex, frameIndex: targetFrame }
+        if (preloadRafRef.current !== null) cancelAnimationFrame(preloadRafRef.current)
+        preloadRafRef.current = requestAnimationFrame(() => {
+          preloadRafRef.current = null
+          loadActiveAndNext(projectIndex, targetFrame, direction)
+          if (projectIndex > 0) loadActiveAndNext(projectIndex - 1, projects[projectIndex - 1].frameCount - 1, -1)
+        })
+      }
     }
 
     const updateProgress = (progress) => {
@@ -263,14 +291,15 @@ export default function ProjectSequence({ projects }) {
       if (projectIndex !== activeRef.current) {
         activeRef.current = projectIndex
         setActiveIndex(projectIndex)
-        loadActiveAndNext(projectIndex)
       }
       const frameIndex = Math.round(localProgress * (projects[projectIndex].frameCount - 1))
-      loadFrame(projectIndex, frameIndex)
+      const previousFrameIndex = lastRenderedFrameRef.current.projectIndex === projectIndex ? lastRenderedFrameRef.current.frameIndex : frameIndex
+      const direction = frameIndex - previousFrameIndex
+      queueProjectPreload(projectIndex, frameIndex, direction)
       requestRender(progress)
     }
 
-    loadActiveAndNext(0)
+    loadActiveAndNext(0, 0, 1)
     resizeCanvas()
 
     const gsapContext = gsap.context(() => {
@@ -310,6 +339,7 @@ export default function ProjectSequence({ projects }) {
       if (resizeRaf !== null) cancelAnimationFrame(resizeRaf)
       if (refreshRaf !== null) cancelAnimationFrame(refreshRaf)
       if (renderRaf !== null) cancelAnimationFrame(renderRaf)
+      if (preloadRafRef.current !== null) cancelAnimationFrame(preloadRafRef.current)
       gsapContext.revert()
       clearStalePin()
       timersRef.current.forEach((timer) => window.clearTimeout(timer))
